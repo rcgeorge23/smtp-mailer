@@ -20,18 +20,24 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		emailTestUtils = new EmailTestUtils("username", "password")
 	}
 	
-	def "hello"() {
+	def "Can send and receive email with plain text body"() {
 		given:
 		emailTestUtils.sendEmail("from@email.address", "to@email.address", "body", "subject")
 		
 		when:
 		RESTClient client = new RESTClient("http://localhost:8080/")
-		while (true) {
-			HttpResponseDecorator response = client.get(path: "/", query: [emailAddress: "to@email.address"])
-			println(response.data)
+		HttpResponseDecorator response
+		
+		while (response == null || response.data.numberOfMessages.toInteger() == 0) {
+			response = client.get(path: "/", query: [emailAddress: "to@email.address"])
 		}
 		
 		then:
-		true
+		println(response.data)
+		response.data.numberOfMessages.toInteger() == 1
+		response.data.messages[0].From == "from@email.address"
+		response.data.messages[0].To == "to@email.address"
+		response.data.messages[0].Body.plain == "body"
+		response.data.messages[0].Subject == "subject"
 	}
 }
