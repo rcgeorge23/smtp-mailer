@@ -74,7 +74,7 @@ public class FakeSmtpServer {
 					public void run() {
 						consumeNewMailMessages();
 					}
-				}, 0, 10, TimeUnit.SECONDS);
+				}, 0, 100, TimeUnit.MILLISECONDS);
 				LOGGER.info(format("Fake SMTP server started on port: %s with maxQueueSize: %s", port, maxQueueSize));
 			} catch (Exception e) {
 				LOGGER.error(

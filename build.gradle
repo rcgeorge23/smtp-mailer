@@ -8,8 +8,8 @@ buildscript {
 }
 
 apply plugin: 'java'
+apply plugin: 'groovy'
 apply plugin: 'eclipse'
-apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
 
 jar {
@@ -19,6 +19,12 @@ jar {
 
 repositories {
     mavenCentral()
+}
+
+ext {
+	gebVersion = '0.12.2'
+	seleniumVersion = '2.53.0'
+	chromeDriverVersion = '2.19'
 }
 
 sourceCompatibility = 1.8
@@ -36,7 +42,22 @@ dependencies {
 	compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
 	compile group: 'commons-io', name: 'commons-io', version: '2.5'
 	compile group: 'com.google.guava', name: 'guava', version: '22.0'
+	compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
 	
+    compile 'org.slf4j:slf4j-api:1.7.14'
+    compile 'org.codehaus.groovy:groovy-all:2.4.5'
 	
-    testCompile("junit:junit")
+	testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
+		exclude(module: 'commons-logging')
+	}
+	
+    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-2'
+	testCompile 'org.spockframework:spock-spring:1.1-groovy-2.4-rc-3'
+	testCompile 'com.nagternal:spock-genesis:0.5.0'
+	testCompile 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'
+    testCompile 'junit:junit:4.12'
+	testCompile "org.gebish:geb-spock:$gebVersion"
+	testCompile "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"  
+	testCompile "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
+	testRuntime "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
 }

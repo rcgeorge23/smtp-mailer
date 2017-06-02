@@ -1,4 +1,6 @@
 package uk.co.novinet.smtpmailer;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import javax.mail.internet.MimeMessage;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.mail.util.MimeMessageParser;
+import org.apache.log4j.Logger;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +27,8 @@ import uk.co.novinet.smtpmailer.service.FakeSmtpServer;
 
 @RestController
 public class EmailController {
+	
+	private static final Logger LOGGER = Logger.getLogger(EmailController.class);
 	
 	private static final String BASE64_BYTES_KEY = "base64Bytes";
 	private static final String CONTENT_TYPE_KEY = "contentType";
@@ -67,7 +72,7 @@ public class EmailController {
 			MimeMessage mimeMessage = mailMessage.getMimeMessage();
 			MimeMessageParser mimeMessageParser = messageParser(mimeMessage);
 			mimeMessageParser.parse();
-			singleMessageMap.put(DATE_KEY, mimeMessage.getSentDate().toString());
+			singleMessageMap.put(DATE_KEY, mimeMessage.getSentDate() == null ? null : ISO_OFFSET_DATE_TIME.format(mimeMessage.getSentDate().toInstant()));
 			singleMessageMap.put(TO_KEY, mailMessage.getEnvelopeReceiver());
 			singleMessageMap.put(FROM_KEY, mailMessage.getEnvelopeSender());
 			singleMessageMap.put(SUBJECT_KEY, mimeMessageParser.getSubject());
