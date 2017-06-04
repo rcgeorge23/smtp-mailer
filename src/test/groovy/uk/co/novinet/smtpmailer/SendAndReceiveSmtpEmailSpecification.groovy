@@ -8,7 +8,6 @@ import groovyx.net.http.HttpResponseDecorator
 import groovyx.net.http.RESTClient
 import spock.lang.Specification
 
-//@SpringBootTest(classes = Application.class)
 @ContextConfiguration(classes = Application.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
@@ -35,9 +34,9 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		then:
 		println(response.data)
 		response.data.numberOfMessages.toInteger() == 1
-		response.data.messages[0].From == "from@email.address"
-		response.data.messages[0].To == "to@email.address"
-		response.data.messages[0].Body.plain == "body"
-		response.data.messages[0].Subject == "subject"
+		response.data.messages[0].fromAddress == "from@email.address"
+		response.data.messages[0].toAddress == "to@email.address"
+		response.data.messages[0].plainBody == "body"
+		response.data.messages[0].subject == "subject"
 	}
 }
