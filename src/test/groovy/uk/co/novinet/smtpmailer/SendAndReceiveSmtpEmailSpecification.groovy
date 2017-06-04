@@ -1,5 +1,8 @@
 package uk.co.novinet.smtpmailer
 
+import static org.apache.commons.codec.binary.Base64.encodeBase64String
+
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
@@ -93,5 +96,9 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		response.data.messages[0].plainBody == "body"
 		response.data.messages[0].subject == "subject"
 		response.data.messages[0].attachments.size() == 1
+		response.data.messages[0].attachments[0].filename == "attachment1.txt"
+		response.data.messages[0].attachments[0].base64EncodedBytes == encodeBase64String("this is attachment 1".getBytes())
+		response.data.messages[0].attachments[0].contentType == "text/plain"
+		response.data.messages[0].attachments[0].index == 0
 	}
 }

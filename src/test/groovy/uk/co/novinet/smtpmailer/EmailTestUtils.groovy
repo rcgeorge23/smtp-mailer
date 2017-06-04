@@ -50,7 +50,7 @@ class EmailTestUtils {
 		String filename = "/Users/rcgeorge23/Documents/workspace-sts/smtp-mailer/src/test/groovy/uk/co/novinet/smtpmailer/attachment1.txt"
 		DataSource source = new FileDataSource(filename)
 		attachmentPart.setDataHandler(new DataHandler(source))
-		attachmentPart.setFileName(filename)
+		attachmentPart.setFileName("attachment1.txt")
 		
 		Multipart multipart = new MimeMultipart()
 		multipart.addBodyPart(messageBodyPart)
