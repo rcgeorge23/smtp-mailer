@@ -42,7 +42,7 @@ import uk.co.novinet.smtpmailer.repository.SmtpMessageRepository;
 
 @Service
 public class SmtpMessageListener implements MessageListener {
-	private static Log log = LogFactory.getLog(SmtpMessageListener.class);
+	private static Log LOGGER = LogFactory.getLog(SmtpMessageListener.class);
 
 	@Resource
 	private SmtpMessageRepository smtpMessageRepository;
@@ -50,13 +50,14 @@ public class SmtpMessageListener implements MessageListener {
 	SMTPServer server;
 
 	public SmtpMessageListener() {
-		log.info("Starting SmtpMessageListener");
+		LOGGER.info("Starting SmtpMessageListener");
 		Collection<MessageListener> listeners = new ArrayList<MessageListener>(1);
 		listeners.add(this);
 
 		this.server = new SMTPServer(listeners);
 		this.server.setPort(8025);
-		((MessageListenerAdapter) server.getMessageHandlerFactory()).setAuthenticationHandlerFactory(new AuthHandlerFactory());
+		((MessageListenerAdapter) server.getMessageHandlerFactory())
+				.setAuthenticationHandlerFactory(new AuthHandlerFactory());
 		start();
 	}
 
@@ -99,7 +100,9 @@ public class SmtpMessageListener implements MessageListener {
 			MimeMessage mimeMessage = new MimeMessage(getSession(), new ByteArrayInputStream(bytes));
 			MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
 			mimeMessageParser.parse();
-			SmtpMessage smtpMessage = new SmtpMessage().withSentDate(mimeMessage.getSentDate()).withToAddress(toAddress)
+			SmtpMessage smtpMessage = new SmtpMessage()
+					.withSentDate(mimeMessage.getSentDate())
+					.withToAddress(toAddress)
 					.withFromAddress(fromAddress).withSubject(mimeMessageParser.getSubject())
 					.withPlainBody(mimeMessageParser.getPlainContent()).withHtmlBody(mimeMessageParser.getHtmlContent())
 					.withAttachments(processAttachments(mimeMessageParser.getAttachmentList()));
@@ -112,10 +115,16 @@ public class SmtpMessageListener implements MessageListener {
 	private Set<Attachment> processAttachments(List<DataSource> attachmentList) throws IOException {
 		Set<Attachment> attachments = new HashSet<Attachment>();
 
+		int index = 0;
+		
 		for (DataSource dataSource : attachmentList) {
-			attachments.add(
-					new Attachment().withFilename(dataSource.getName()).withContentType(dataSource.getContentType())
-							.withBase64EncodedBytes(encodeBase64String(toByteArray(dataSource.getInputStream()))));
+			attachments.add(new Attachment()
+					.withIndex(index)
+					.withFilename(dataSource.getName())
+					.withContentType(dataSource.getContentType())
+					.withBase64EncodedBytes(encodeBase64String(toByteArray(dataSource.getInputStream()))));
+			
+			index++;
 		}
 
 		return attachments;
@@ -134,8 +143,8 @@ public class SmtpMessageListener implements MessageListener {
 			PluginAuthenticationHandler ret = new PluginAuthenticationHandler();
 			UsernamePasswordValidator validator = new UsernamePasswordValidator() {
 				public void login(String username, String password) throws LoginFailedException {
-					log.info("Username=" + username);
-					log.info("Password=" + password);
+					LOGGER.info("Username=" + username);
+					LOGGER.info("Password=" + password);
 				}
 			};
 			ret.addPlugin(new PlainAuthenticationHandler(validator));

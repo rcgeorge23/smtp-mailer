@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import uk.co.novinet.smtpmailer.model.SmtpMessage;
 
 public interface SmtpMessageRepository extends JpaRepository<SmtpMessage, Long> {
-	List<SmtpMessage> findByToAddress(String toAddress);
-	List<SmtpMessage> findByFromAddress(String fromAddress);
+	List<SmtpMessage> findByToAddressOrderBySentDateDesc(String toAddress);
+	List<SmtpMessage> findByFromAddressOrderBySentDateDesc(String fromAddress);
 }

@@ -15,6 +15,7 @@ public class Attachment {
 	private String filename;
 	private String base64EncodedBytes;
 	private String contentType;
+	private int index;
 	
 	@ManyToOne
 	private SmtpMessage smtpMessage;
@@ -65,6 +66,11 @@ public class Attachment {
 		this.base64EncodedBytes = base64EncodedBytes;
 		return this;
 	}
+	
+	public Attachment withIndex(int index) {
+		this.index = index;
+		return this;
+	}
 
 	public SmtpMessage getSmtpMessage() {
 		return smtpMessage;
@@ -72,6 +78,14 @@ public class Attachment {
 
 	public void setSmtpMessage(SmtpMessage smtpMessage) {
 		this.smtpMessage = smtpMessage;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
 	}
 	
 }

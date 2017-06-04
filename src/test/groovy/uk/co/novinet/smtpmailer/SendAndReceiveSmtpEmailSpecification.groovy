@@ -39,4 +39,37 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		response.data.messages[0].plainBody == "body"
 		response.data.messages[0].subject == "subject"
 	}
+	
+	def "Can send 3 emails and receive them in order they were sent"() {
+		given:
+		emailTestUtils.sendEmail("from@email.address", "to1@email.address", "body1", "subject1")
+		emailTestUtils.sendEmail("from@email.address", "to1@email.address", "body2", "subject2")
+		emailTestUtils.sendEmail("from@email.address", "to1@email.address", "body3", "subject3")
+		
+		when:
+		RESTClient client = new RESTClient("http://localhost:8080/")
+		HttpResponseDecorator response
+		
+		while (response == null || response.data.numberOfMessages.toInteger() == 0) {
+			response = client.get(path: "/", query: [emailAddress: "to1@email.address"])
+		}
+		
+		then:
+		println(response.data)
+		response.data.numberOfMessages.toInteger() == 3
+		response.data.messages[0].fromAddress == "from@email.address"
+		response.data.messages[0].toAddress == "to1@email.address"
+		response.data.messages[0].plainBody == "body1"
+		response.data.messages[0].subject == "subject1"
+		
+		response.data.messages[1].fromAddress == "from@email.address"
+		response.data.messages[1].toAddress == "to1@email.address"
+		response.data.messages[1].plainBody == "body2"
+		response.data.messages[1].subject == "subject2"
+		
+		response.data.messages[2].fromAddress == "from@email.address"
+		response.data.messages[2].toAddress == "to1@email.address"
+		response.data.messages[2].plainBody == "body3"
+		response.data.messages[2].subject == "subject3"
+	}
 }

@@ -31,7 +31,7 @@ public class EmailController {
 	
     @RequestMapping("/")
     public Map<String, Object> index(@RequestParam("emailAddress") String emailAddress) {
-		List<SmtpMessage> smtpMessagesForEmailAddress = smtpMessageRepository.findByToAddress(emailAddress);
+		List<SmtpMessage> smtpMessagesForEmailAddress = smtpMessageRepository.findByToAddressOrderBySentDateDesc(emailAddress);
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		
