@@ -78,7 +78,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 	
 	def "Can send and receive an email with plain text body and 1 attachment"() {
 		given:
-		emailTestUtils.sendEmail("from@email.address", "to2@email.address", "body", "subject")
+		emailTestUtils.sendEmail("from@email.address", "to2@email.address", "body", "subject", ["attachment1.txt"])
 		
 		when:
 		RESTClient client = new RESTClient("http://localhost:8080/")
@@ -100,5 +100,35 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		response.data.messages[0].attachments[0].base64EncodedBytes == encodeBase64String("this is attachment 1".getBytes())
 		response.data.messages[0].attachments[0].contentType == "text/plain"
 		response.data.messages[0].attachments[0].index == 0
+	}
+	
+	def "Can send and receive an email with plain text body and 2 attachments"() {
+		given:
+		emailTestUtils.sendEmail("from@email.address", "to3@email.address", "body", "subject", ["attachment1.txt", "attachment2.txt"])
+		
+		when:
+		RESTClient client = new RESTClient("http://localhost:8080/")
+		HttpResponseDecorator response
+		
+		while (response == null || response.data.numberOfMessages.toInteger() == 0) {
+			response = client.get(path: "/", query: [emailAddress: "to3@email.address"])
+		}
+		
+		then:
+		println(response.data)
+		response.data.numberOfMessages.toInteger() == 1
+		response.data.messages[0].fromAddress == "from@email.address"
+		response.data.messages[0].toAddress == "to3@email.address"
+		response.data.messages[0].plainBody == "body"
+		response.data.messages[0].subject == "subject"
+		response.data.messages[0].attachments.size() == 2
+		response.data.messages[0].attachments[0].filename == "attachment1.txt"
+		response.data.messages[0].attachments[0].base64EncodedBytes == encodeBase64String("this is attachment 1".getBytes())
+		response.data.messages[0].attachments[0].contentType == "text/plain"
+		response.data.messages[0].attachments[0].index == 0
+		response.data.messages[0].attachments[1].filename == "attachment2.txt"
+		response.data.messages[0].attachments[1].base64EncodedBytes == encodeBase64String("this is attachment 2".getBytes())
+		response.data.messages[0].attachments[1].contentType == "text/plain"
+		response.data.messages[0].attachments[1].index == 1
 	}
 }

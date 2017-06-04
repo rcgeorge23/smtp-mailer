@@ -24,7 +24,7 @@ class EmailTestUtils {
 		this.password = password
 	}
 	
-	public sendEmail(String from, String to, String body, String subject) {
+	public sendEmail(String from, String to, String body, String subject, List<String> attachFilenames = [] as List) {
 		String host = "localhost"
 		Properties props = System.getProperties()
 //		props.put("mail.smtp.starttls.enable",true)
@@ -38,6 +38,7 @@ class EmailTestUtils {
 	 
 		Session session = Session.getDefaultInstance(props, null)
 		MimeMessage message = new MimeMessage(session)
+		Multipart multipart = new MimeMultipart()
 		
 		message.setFrom(new InternetAddress(from))
 		message.setSubject(subject)
@@ -45,16 +46,15 @@ class EmailTestUtils {
 
 		MimeBodyPart messageBodyPart = new MimeBodyPart()
 		messageBodyPart.setContent(body, "text/plain")
-		
-		MimeBodyPart attachmentPart = new MimeBodyPart()
-		String filename = "/Users/rcgeorge23/Documents/workspace-sts/smtp-mailer/src/test/groovy/uk/co/novinet/smtpmailer/attachment1.txt"
-		DataSource source = new FileDataSource(filename)
-		attachmentPart.setDataHandler(new DataHandler(source))
-		attachmentPart.setFileName("attachment1.txt")
-		
-		Multipart multipart = new MimeMultipart()
 		multipart.addBodyPart(messageBodyPart)
-		multipart.addBodyPart(attachmentPart)
+		
+		attachFilenames.each { filename ->
+			MimeBodyPart attachmentPart = new MimeBodyPart()
+			DataSource source = new FileDataSource(this.class.getResource(filename).getPath())
+			attachmentPart.setDataHandler(new DataHandler(source))
+			attachmentPart.setFileName(filename)
+			multipart.addBodyPart(attachmentPart)
+		}
 		
 		message.setContent(multipart)
 	 
