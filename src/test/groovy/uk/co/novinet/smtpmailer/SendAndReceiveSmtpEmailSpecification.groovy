@@ -6,6 +6,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.web.bind.annotation.RequestParam
 
 import groovyx.net.http.HttpResponseDecorator
 import groovyx.net.http.RESTClient
@@ -28,11 +29,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		
 		when:
 		RESTClient client = new RESTClient("http://localhost:8080/")
-		HttpResponseDecorator response
-		
-		while (response == null || response.data.numberOfMessages.toInteger() == 0) {
-			response = client.get(path: "/", query: [emailAddress: "to@email.address"])
-		}
+		HttpResponseDecorator response = client.get(path: "/", query: [username: "username", password: "password", toAddress: "to@email.address"])
 		
 		then:
 		println(response.data)
@@ -51,11 +48,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		
 		when:
 		RESTClient client = new RESTClient("http://localhost:8080/")
-		HttpResponseDecorator response
-		
-		while (response == null || response.data.numberOfMessages.toInteger() == 0) {
-			response = client.get(path: "/", query: [emailAddress: "to1@email.address"])
-		}
+		HttpResponseDecorator response = client.get(path: "/", query: [username: "username", password: "password", toAddress: "to1@email.address"])
 		
 		then:
 		println(response.data)
@@ -82,11 +75,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		
 		when:
 		RESTClient client = new RESTClient("http://localhost:8080/")
-		HttpResponseDecorator response
-		
-		while (response == null || response.data.numberOfMessages.toInteger() == 0) {
-			response = client.get(path: "/", query: [emailAddress: "to2@email.address"])
-		}
+		HttpResponseDecorator response = client.get(path: "/", query: [username: "username", password: "password", toAddress: "to2@email.address"])
 		
 		then:
 		println(response.data)
@@ -108,11 +97,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		
 		when:
 		RESTClient client = new RESTClient("http://localhost:8080/")
-		HttpResponseDecorator response
-		
-		while (response == null || response.data.numberOfMessages.toInteger() == 0) {
-			response = client.get(path: "/", query: [emailAddress: "to3@email.address"])
-		}
+		HttpResponseDecorator response = client.get(path: "/", query: [username: "username", password: "password", toAddress: "to3@email.address"])
 		
 		then:
 		println(response.data)

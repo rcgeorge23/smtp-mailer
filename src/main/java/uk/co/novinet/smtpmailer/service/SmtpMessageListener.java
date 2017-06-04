@@ -1,5 +1,6 @@
 package uk.co.novinet.smtpmailer.service;
 
+import static java.lang.String.format;
 import static org.apache.commons.codec.binary.Base64.encodeBase64String;
 import static org.apache.commons.io.IOUtils.toByteArray;
 
@@ -22,21 +23,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.springframework.stereotype.Service;
-import org.subethamail.smtp.AuthenticationHandler;
-import org.subethamail.smtp.AuthenticationHandlerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import org.subethamail.smtp.MessageListener;
 import org.subethamail.smtp.TooMuchDataException;
-import org.subethamail.smtp.auth.LoginAuthenticationHandler;
-import org.subethamail.smtp.auth.LoginFailedException;
-import org.subethamail.smtp.auth.PlainAuthenticationHandler;
-import org.subethamail.smtp.auth.PluginAuthenticationHandler;
-import org.subethamail.smtp.auth.UsernamePasswordValidator;
 import org.subethamail.smtp.server.MessageListenerAdapter;
 import org.subethamail.smtp.server.SMTPServer;
 
 import uk.co.novinet.smtpmailer.model.Attachment;
+import uk.co.novinet.smtpmailer.model.SmtpAuthentication;
 import uk.co.novinet.smtpmailer.model.SmtpMessage;
 import uk.co.novinet.smtpmailer.repository.AttachmentRepository;
+import uk.co.novinet.smtpmailer.repository.SmtpAuthenticationRepository;
 import uk.co.novinet.smtpmailer.repository.SmtpMessageRepository;
 
 @Service
@@ -48,6 +45,9 @@ public class SmtpMessageListener implements MessageListener {
 	
 	@Resource
 	private AttachmentRepository attachmentRepository;
+	
+	@Resource
+	private SmtpAuthenticationRepository smtpAuthenticationRepository;
 
 	SMTPServer server;
 
@@ -58,8 +58,10 @@ public class SmtpMessageListener implements MessageListener {
 
 		this.server = new SMTPServer(listeners);
 		this.server.setPort(8025);
-		((MessageListenerAdapter) server.getMessageHandlerFactory())
-				.setAuthenticationHandlerFactory(new AuthHandlerFactory());
+		
+		MessageListenerAdapter messageHandlerFactory = (MessageListenerAdapter) server.getMessageHandlerFactory();
+		messageHandlerFactory.setAuthenticationHandlerFactory(new SmtpMessageListenerAuthenticationHandlerFactory());
+		
 		start();
 	}
 
@@ -80,12 +82,12 @@ public class SmtpMessageListener implements MessageListener {
 	}
 
 	@Override
-	public boolean accept(String from, String recipient) {
+	public boolean accept(String fromAddress, String toAddress) {
 		return true;
 	}
 
 	@Override
-	public void deliver(String from, String recipient, InputStream data) throws TooMuchDataException, IOException {
+	public void deliver(String fromAddress, String toAddress, InputStream data) throws TooMuchDataException, IOException {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		data = new BufferedInputStream(data);
 
@@ -94,20 +96,42 @@ public class SmtpMessageListener implements MessageListener {
 			out.write(current);
 		}
 
-		persistSmtpMessage(from, recipient, out.toByteArray());
-		
+		persistInTransaction(fromAddress, toAddress, out);
 	}
 
-	private void persistSmtpMessage(String fromAddress, String toAddress, byte[] bytes) {
+	@Transactional
+	private void persistInTransaction(String from, String recipient, ByteArrayOutputStream out) {
+		persistSmtpMessage(getOrCreateSmtpAuthentication(getSession().getProperty("mail.smtp.user"), getSession().getProperty("mail.smtp.password")), from, recipient, out.toByteArray());
+	}
+
+	private SmtpAuthentication getOrCreateSmtpAuthentication(String username, String password) {
+		List<SmtpAuthentication> smtpAuthentiations = smtpAuthenticationRepository.findByUsernameAndPassword(username, password);
+		
+		if (smtpAuthentiations.size() > 1) {
+			throw new RuntimeException(format("Found more than one smtpAuthentication with username=%s and password=%s", username, password));
+		}
+		
+		if (smtpAuthentiations.size() == 1) {
+			return smtpAuthentiations.get(0);
+		}
+		
+		return smtpAuthenticationRepository.save(new SmtpAuthentication()
+			.withUsername(username)
+			.withPassword(password)
+		);
+	}
+
+	private void persistSmtpMessage(SmtpAuthentication smtpAuthentication, String fromAddress, String toAddress, byte[] bytes) {
 		try {
 			MimeMessage mimeMessage = new MimeMessage(getSession(), new ByteArrayInputStream(bytes));
 			MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
 			mimeMessageParser.parse();
 			SmtpMessage smtpMessage = new SmtpMessage()
-					.withSentDate(mimeMessage.getSentDate())
-					.withToAddress(toAddress)
-					.withFromAddress(fromAddress).withSubject(mimeMessageParser.getSubject())
-					.withPlainBody(mimeMessageParser.getPlainContent()).withHtmlBody(mimeMessageParser.getHtmlContent());
+				.withSentDate(mimeMessage.getSentDate())
+				.withToAddress(toAddress)
+				.withFromAddress(fromAddress).withSubject(mimeMessageParser.getSubject())
+				.withPlainBody(mimeMessageParser.getPlainContent()).withHtmlBody(mimeMessageParser.getHtmlContent())
+				.withSmtpAuthentication(smtpAuthentication);
 			
 			smtpMessageRepository.save(smtpMessage);
 			persistAttachments(smtpMessage, mimeMessageParser.getAttachmentList());
@@ -120,11 +144,12 @@ public class SmtpMessageListener implements MessageListener {
 		int index = 0;
 		for (DataSource dataSource : attachmentList) {
 			attachmentRepository.save(new Attachment()
-					.withSmtpMessage(smtpMessage)
-					.withIndex(index++)
-					.withFilename(dataSource.getName())
-					.withContentType(dataSource.getContentType())
-					.withBase64EncodedBytes(encodeBase64String(toByteArray(dataSource.getInputStream()))));
+				.withSmtpMessage(smtpMessage)
+				.withIndex(index++)
+				.withFilename(dataSource.getName())
+				.withContentType(dataSource.getContentType())
+				.withBase64EncodedBytes(encodeBase64String(toByteArray(dataSource.getInputStream())))
+			);
 		}
 	}
 
@@ -134,20 +159,5 @@ public class SmtpMessageListener implements MessageListener {
 
 	public SMTPServer getServer() {
 		return this.server;
-	}
-
-	public class AuthHandlerFactory implements AuthenticationHandlerFactory {
-		public AuthenticationHandler create() {
-			PluginAuthenticationHandler ret = new PluginAuthenticationHandler();
-			UsernamePasswordValidator validator = new UsernamePasswordValidator() {
-				public void login(String username, String password) throws LoginFailedException {
-					LOGGER.info("Username=" + username);
-					LOGGER.info("Password=" + password);
-				}
-			};
-			ret.addPlugin(new PlainAuthenticationHandler(validator));
-			ret.addPlugin(new LoginAuthenticationHandler(validator));
-			return ret;
-		}
 	}
 }

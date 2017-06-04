@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import uk.co.novinet.smtpmailer.model.Attachment;
+import uk.co.novinet.smtpmailer.model.SmtpAuthentication;
 import uk.co.novinet.smtpmailer.model.SmtpMessage;
 import uk.co.novinet.smtpmailer.repository.AttachmentRepository;
+import uk.co.novinet.smtpmailer.repository.SmtpAuthenticationRepository;
 import uk.co.novinet.smtpmailer.repository.SmtpMessageRepository;
 import uk.co.novinet.smtpmailer.service.SmtpMessageListener;
 
@@ -37,11 +40,28 @@ public class EmailController {
 	AttachmentRepository attachmentRepository; 
 	
 	@Resource
+	SmtpAuthenticationRepository smtpAuthenticationRepository; 
+	
+	@Resource
 	SmtpMessageListener smtpMessageListener;
 	
     @RequestMapping("/")
-    public Map<String, Object> index(@RequestParam("emailAddress") String emailAddress) throws IllegalAccessException, InvocationTargetException {
-		List<SmtpMessage> smtpMessages = smtpMessageRepository.findByToAddressOrderBySentDateDesc(emailAddress);
+    public Map<String, Object> index(
+    		@RequestParam("username") String username, 
+    		@RequestParam("password") String password, 
+    		@RequestParam("toAddress") String toAddress,
+    		HttpServletResponse httpServletResponse) throws IllegalAccessException, InvocationTargetException {
+    	
+    	List<SmtpAuthentication> smtpAuthentications = smtpAuthenticationRepository.findByUsernameAndPassword(username, password);
+    	
+    	if (smtpAuthentications.isEmpty()) {
+    		httpServletResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+    		return null;
+    	}
+    	
+    	SmtpAuthentication smtpAuthentication = smtpAuthentications.get(0);
+    	
+		List<SmtpMessage> smtpMessages = smtpMessageRepository.findBySmtpAuthenticationAndToAddressOrderBySentDateDesc(smtpAuthentication, toAddress);
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		

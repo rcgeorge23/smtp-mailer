@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 @Entity
 public class SmtpMessage
@@ -19,6 +20,9 @@ public class SmtpMessage
 	private String htmlBody;
 	private String plainBody;
 	private Date sentDate;
+	
+	@ManyToOne
+	private SmtpAuthentication smtpAuthentication;
 	
 	public Long getId() {
 		return id;
@@ -76,6 +80,14 @@ public class SmtpMessage
 		return subject;
 	}
 	
+	public SmtpAuthentication getSmtpAuthentication() {
+		return smtpAuthentication;
+	}
+
+	public void setSmtpAuthentication(SmtpAuthentication smtpAuthentication) {
+		this.smtpAuthentication = smtpAuthentication;
+	}
+	
 	public SmtpMessage withSubject(String subject) {
 		this.subject = subject;
 		return this;
@@ -103,6 +115,11 @@ public class SmtpMessage
 	
 	public SmtpMessage withPlainBody(String plainBody) {
 		this.plainBody = plainBody;
+		return this;
+	}
+	
+	public SmtpMessage withSmtpAuthentication(SmtpAuthentication smtpAuthentication) {
+		this.smtpAuthentication = smtpAuthentication;
 		return this;
 	}
 }
