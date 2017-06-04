@@ -1,14 +1,11 @@
 package uk.co.novinet.smtpmailer.model;
 
 import java.util.Date;
-import java.util.Set;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 @Entity
 public class SmtpMessage
@@ -22,9 +19,6 @@ public class SmtpMessage
 	private String htmlBody;
 	private String plainBody;
 	private Date sentDate;
-	
-	@OneToMany(mappedBy = "smtpMessage", cascade = CascadeType.ALL)
-	private Set<Attachment> attachments;
 	
 	public Long getId() {
 		return id;
@@ -58,10 +52,6 @@ public class SmtpMessage
 		this.sentDate = sentDate;
 	}
 
-	public void setAttachments(Set<Attachment> attachments) {
-		this.attachments = attachments;
-	}
-
 	public String getFromAddress() {
 		return fromAddress;
 	}
@@ -80,10 +70,6 @@ public class SmtpMessage
 
 	public Date getSentDate() {
 		return sentDate;
-	}
-
-	public Set<Attachment> getAttachments() {
-		return attachments;
 	}
 
 	public String getSubject() {
@@ -117,11 +103,6 @@ public class SmtpMessage
 	
 	public SmtpMessage withPlainBody(String plainBody) {
 		this.plainBody = plainBody;
-		return this;
-	}
-	
-	public SmtpMessage withAttachments(Set<Attachment> attachments) {
-		this.attachments = attachments;
 		return this;
 	}
 }

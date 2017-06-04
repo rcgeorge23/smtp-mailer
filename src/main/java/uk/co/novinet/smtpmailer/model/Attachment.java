@@ -71,6 +71,11 @@ public class Attachment {
 		this.index = index;
 		return this;
 	}
+	
+	public Attachment withSmtpMessage(SmtpMessage smtpMessage) {
+		this.smtpMessage = smtpMessage;
+		return this;
+	}
 
 	public SmtpMessage getSmtpMessage() {
 		return smtpMessage;

@@ -1,10 +1,16 @@
 package uk.co.novinet.smtpmailer
 
+import javax.activation.DataHandler
+import javax.activation.DataSource
+import javax.activation.FileDataSource
 import javax.mail.Message
+import javax.mail.Multipart
 import javax.mail.Session
 import javax.mail.Transport
 import javax.mail.internet.InternetAddress
+import javax.mail.internet.MimeBodyPart
 import javax.mail.internet.MimeMessage
+import javax.mail.internet.MimeMultipart
 
 class EmailTestUtils {
 	public static final String HOST = "localhost"
@@ -32,14 +38,25 @@ class EmailTestUtils {
 	 
 		Session session = Session.getDefaultInstance(props, null)
 		MimeMessage message = new MimeMessage(session)
+		
 		message.setFrom(new InternetAddress(from))
-	 
-		InternetAddress toAddress = new InternetAddress(to)
-	 
-		message.addRecipient(Message.RecipientType.TO, toAddress)
-	 
 		message.setSubject(subject)
-		message.setText(body)
+		message.addRecipient(Message.RecipientType.TO, new InternetAddress(to))
+
+		MimeBodyPart messageBodyPart = new MimeBodyPart()
+		messageBodyPart.setContent(body, "text/plain")
+		
+		MimeBodyPart attachmentPart = new MimeBodyPart()
+		String filename = "/Users/rcgeorge23/Documents/workspace-sts/smtp-mailer/src/test/groovy/uk/co/novinet/smtpmailer/attachment1.txt"
+		DataSource source = new FileDataSource(filename)
+		attachmentPart.setDataHandler(new DataHandler(source))
+		attachmentPart.setFileName(filename)
+		
+		Multipart multipart = new MimeMultipart()
+		multipart.addBodyPart(messageBodyPart)
+		multipart.addBodyPart(attachmentPart)
+		
+		message.setContent(multipart)
 	 
 		Transport transport 
 		

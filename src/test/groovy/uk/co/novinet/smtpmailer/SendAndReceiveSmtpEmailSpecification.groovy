@@ -72,4 +72,26 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		response.data.messages[2].plainBody == "body3"
 		response.data.messages[2].subject == "subject3"
 	}
+	
+	def "Can send and receive an email with plain text body and 1 attachment"() {
+		given:
+		emailTestUtils.sendEmail("from@email.address", "to2@email.address", "body", "subject")
+		
+		when:
+		RESTClient client = new RESTClient("http://localhost:8080/")
+		HttpResponseDecorator response
+		
+		while (response == null || response.data.numberOfMessages.toInteger() == 0) {
+			response = client.get(path: "/", query: [emailAddress: "to2@email.address"])
+		}
+		
+		then:
+		println(response.data)
+		response.data.numberOfMessages.toInteger() == 1
+		response.data.messages[0].fromAddress == "from@email.address"
+		response.data.messages[0].toAddress == "to2@email.address"
+		response.data.messages[0].plainBody == "body"
+		response.data.messages[0].subject == "subject"
+		response.data.messages[0].attachments.size() == 1
+	}
 }
