@@ -4,6 +4,8 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
+		classpath("org.ajoberstar:gradle-git:1.6.0")
+		classpath("commons-io:commons-io:2.4")
     }
 }
 
@@ -11,20 +13,32 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'org.ajoberstar.grgit'
+apply plugin: 'org.ajoberstar.github-pages'
+apply plugin: 'org.ajoberstar.release-opinion'
+
+import org.ajoberstar.grgit.Grgit
+import org.apache.commons.io.FileUtils
 
 jar {
-    baseName = 'gs-spring-boot'
-    version =  '0.1.0'
+	baseName = 'smtp-mailer'
+	version = project.version.toString()
 }
 
 repositories {
-    mavenCentral()
+	jcenter()
+	mavenCentral()
 }
 
 ext {
 	gebVersion = '0.12.2'
 	seleniumVersion = '2.53.0'
 	chromeDriverVersion = '2.19'
+	
+	applicationRepositoryName = 'smtp-mailer'
+	applicationRepositoryUrl = 'git@github.com:rcgeorge23/smtp-mailer.git'
+	releaseRepositoryName = 'smtp-mailer-releases'
+	releaseRepositoryUrl = 'git@github.com:rcgeorge23/smtp-mailer-releases.git'
 }
 
 sourceCompatibility = 1.8
@@ -44,6 +58,8 @@ dependencies {
 	compile group: 'commons-io', name: 'commons-io', version: '2.5'
 	compile group: 'com.google.guava', name: 'guava', version: '22.0'
 	compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+	compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
+	
 	runtime group: 'com.h2database', name: 'h2', version:'1.4.192'
 	
     compile 'org.slf4j:slf4j-api:1.7.14'
@@ -63,3 +79,61 @@ dependencies {
 	testCompile "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
 	testRuntime "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
 }
+
+bootRun {
+	addResources = true
+}
+
+task pushJarToReleaseRepo {
+	doLast {
+		File releaseRepositoryDirectory = new File("/tmp/${releaseRepositoryName}")
+		if (releaseRepositoryDirectory.exists()) {
+			println "Release directory exists, deleting..."
+			FileUtils.deleteQuietly(releaseRepositoryDirectory)
+		}
+		
+		println "Cloning fresh copy of release repo to tmp directory"
+		new File("/tmp").mkdirs()
+		def releaseGitRepo = Grgit.clone(dir: "/tmp/${releaseRepositoryName}", uri: releaseRepositoryUrl)
+		
+		File buildArtifactDirectory = new File("build/libs")
+		File[] jars = buildArtifactDirectory.listFiles(new FilenameFilter() {
+			public boolean accept(File dir, String filename) {
+				return filename.endsWith(".jar")
+			}
+		})
+		
+		if (jars.length == 0) {
+			throw new Exception("No build artifact in ${buildArtifactDirectory.absoluteFile}")
+		}
+		
+		if (jars.length > 1) {
+			throw new Exception("More than 1 build artifact found in ${buildArtifactDirectory.absoluteFile}: ${jars.collect { it.name } }")
+		}
+		
+		//there can only be one jar now, create the current and archive dirs if necessary
+		File currentBuildArtefactDirectory = new File("/tmp/${releaseRepositoryName}/current")
+		File archivedBuildArtefactsDirectory = new File("/tmp/${releaseRepositoryName}/archive")
+		
+		currentBuildArtefactDirectory.mkdirs()
+		archivedBuildArtefactsDirectory.mkdirs()
+		
+		println "deleting current jar"
+		currentBuildArtefactDirectory.listFiles().each { file ->
+			FileUtils.deleteQuietly(file)
+		}
+		
+		println "copying freshly built jar to current and archive directory"
+		FileUtils.copyFileToDirectory(jars[0], currentBuildArtefactDirectory)
+		//FileUtils.copyFileToDirectory(jars[0], archivedBuildArtefactsDirectory) //commented this out for now - do we really want to keep old builds?
+		
+		println "committing jar and pushing to remote"
+		//releaseGitRepo.add(patterns: ['current', 'archive'])
+		releaseGitRepo.add(patterns: ['current', 'archive'], update: true)
+		releaseGitRepo.add(patterns: ['current', 'archive'])
+		releaseGitRepo.commit(message: "Releasing version ${project.version.toString()}")
+		releaseGitRepo.push()
+	}
+}
+
+tasks.release.dependsOn 'build', 'pushJarToReleaseRepo'

@@ -24,7 +24,7 @@ class EmailTestUtils {
 		this.password = password
 	}
 	
-	public sendEmail(String from, String to, String body, String subject, List<String> attachFilenames = [] as List) {
+	public sendEmail(String from, String to, String body, String subject, Map<String, String> filesToAttach = [:] as Map) {
 		String host = "localhost"
 		Properties props = System.getProperties()
 //		props.put("mail.smtp.starttls.enable",true)
@@ -48,9 +48,12 @@ class EmailTestUtils {
 		messageBodyPart.setContent(body, "text/plain")
 		multipart.addBodyPart(messageBodyPart)
 		
-		attachFilenames.each { filename ->
+		filesToAttach.each { filename, fileContent ->
+			File tempFile = File.createTempFile(filename, "smtpMailerIntegrationTestTempFile")
+			tempFile.deleteOnExit()
+			tempFile.setText(fileContent)
 			MimeBodyPart attachmentPart = new MimeBodyPart()
-			DataSource source = new FileDataSource(this.class.getResource(filename).getPath())
+			DataSource source = new FileDataSource(tempFile.getPath())
 			attachmentPart.setDataHandler(new DataHandler(source))
 			attachmentPart.setFileName(filename)
 			multipart.addBodyPart(attachmentPart)
