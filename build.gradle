@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
+        classpatph("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
 		classpath("org.ajoberstar:gradle-git:1.6.0")
 		classpath("commons-io:commons-io:2.4")
     }
@@ -13,9 +13,9 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
-apply plugin: 'org.ajoberstar.grgit'
-apply plugin: 'org.ajoberstar.github-pages'
-apply plugin: 'org.ajoberstar.release-opinion'
+//apply plugin: 'org.ajoberstar.grgit'
+//apply plugin: 'org.ajoberstar.github-pages'
+//apply plugin: 'org.ajoberstar.release-opinion'
 
 import org.ajoberstar.grgit.Grgit
 import org.apache.commons.io.FileUtils
@@ -84,6 +84,7 @@ bootRun {
 	addResources = true
 }
 
+/*
 task pushJarToReleaseRepo {
 	doLast {
 		File releaseRepositoryDirectory = new File("/tmp/${releaseRepositoryName}")
@@ -135,5 +136,6 @@ task pushJarToReleaseRepo {
 		releaseGitRepo.push()
 	}
 }
+*/
 
-tasks.release.dependsOn 'build', 'pushJarToReleaseRepo'
+//tasks.release.dependsOn 'build', 'pushJarToReleaseRepo'
