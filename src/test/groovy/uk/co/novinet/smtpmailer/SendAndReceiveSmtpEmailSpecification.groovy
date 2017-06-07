@@ -16,6 +16,8 @@ import spock.lang.Specification
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 class SendAndReceiveSmtpEmailSpecification extends Specification {
+
+	static final String BASE_URL = "http://localhost:8080/"
 	
 	EmailTestUtils emailTestUtils
 	
@@ -28,7 +30,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		emailTestUtils.sendEmail("from@email.address", "to@email.address", "body", "subject")
 		
 		when:
-		RESTClient client = new RESTClient("http://localhost:8080/")
+		RESTClient client = new RESTClient(BASE_URL)
 		HttpResponseDecorator response = client.get(path: "/", query: [username: "username", password: "password", toAddress: "to@email.address"])
 		
 		then:
@@ -47,7 +49,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		emailTestUtils.sendEmail("from@email.address", "to1@email.address", "body3", "subject3")
 		
 		when:
-		RESTClient client = new RESTClient("http://localhost:8080/")
+		RESTClient client = new RESTClient(BASE_URL)
 		HttpResponseDecorator response = client.get(path: "/", query: [username: "username", password: "password", toAddress: "to1@email.address"])
 		
 		then:
@@ -74,7 +76,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		emailTestUtils.sendEmail("from@email.address", "to2@email.address", "body", "subject", ["attachment1.txt": "this is attachment 1"])
 		
 		when:
-		RESTClient client = new RESTClient("http://localhost:8080/")
+		RESTClient client = new RESTClient(BASE_URL)
 		HttpResponseDecorator response = client.get(path: "/", query: [username: "username", password: "password", toAddress: "to2@email.address"])
 		
 		then:
@@ -96,7 +98,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		emailTestUtils.sendEmail("from@email.address", "to3@email.address", "body", "subject", ["attachment1.txt": "this is attachment 1", "attachment2.txt": "this is attachment 2"])
 		
 		when:
-		RESTClient client = new RESTClient("http://localhost:8080/")
+		RESTClient client = new RESTClient(BASE_URL)
 		HttpResponseDecorator response = client.get(path: "/", query: [username: "username", password: "password", toAddress: "to3@email.address"])
 		
 		then:
