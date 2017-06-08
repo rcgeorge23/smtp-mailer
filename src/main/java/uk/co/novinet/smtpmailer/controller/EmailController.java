@@ -52,6 +52,8 @@ public class EmailController {
     		@RequestParam("toAddress") String toAddress,
     		HttpServletResponse httpServletResponse) throws IllegalAccessException, InvocationTargetException {
     	
+    	LOGGER.info(String.format("Email controller invoked with username: %s, password: %s, toAddress: %s", username, password, toAddress));
+    	
     	List<SmtpAuthentication> smtpAuthentications = smtpAuthenticationRepository.findByUsernameAndPassword(username, password);
     	
     	if (smtpAuthentications.isEmpty()) {
