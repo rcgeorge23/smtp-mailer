@@ -21,7 +21,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 //	static final String HTTP_PORT = "8080"
 //	static final String SMTP_PORT = "8025"
 	
-//	static final String HOST = "176.9.31.124"
+//	static final String HOST = "fakesmtp.novinet.co.uk"
 	static final String HTTP_PORT = "80"
 	static final String SMTP_PORT = "25"
 	
