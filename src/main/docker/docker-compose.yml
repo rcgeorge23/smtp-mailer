@@ -1,0 +1,24 @@
+version: '3'
+services:
+  databae:
+    image: mysql:5.7
+    volumes:
+    - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootyroot
+      MYSQL_DATABASE: smtpmailer
+      MYSQL_USER: smtpmailer
+      MYSQL_PASSWORD: smtpmailer
+      
+  smtpmailer:
+    depends_on:
+    - databae
+    build: .
+    ports:
+    - "8080:8080"
+    - "8025:8025"
+    volumes:
+    - .:/code
+    - logvolume01:/var/log
+volumes:
+  logvolume01: {}

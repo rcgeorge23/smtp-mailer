@@ -8,6 +8,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 @Entity
 public class SmtpMessage
 {
@@ -121,5 +123,10 @@ public class SmtpMessage
 	public SmtpMessage withSmtpAuthentication(SmtpAuthentication smtpAuthentication) {
 		this.smtpAuthentication = smtpAuthentication;
 		return this;
+	}
+	
+	@Override
+	public String toString() {
+		return ReflectionToStringBuilder.reflectionToString(this);
 	}
 }

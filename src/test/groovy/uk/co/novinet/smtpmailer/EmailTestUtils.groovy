@@ -13,28 +13,29 @@ import javax.mail.internet.MimeMessage
 import javax.mail.internet.MimeMultipart
 
 class EmailTestUtils {
-	public static final String HOST = "localhost"
-	public static final String PORT = "8025"
 	
 	String username
 	String password
+	String host
+	String port
 	
-	public EmailTestUtils(String username, String password) {
+	public EmailTestUtils(String username, String password, String host, String port) {
 		this.username = username
 		this.password = password
+		this.host = host
+		this.port = port
 	}
 	
 	public sendEmail(String from, String to, String body, String subject, Map<String, String> filesToAttach = [:] as Map) {
-		String host = "localhost"
 		Properties props = System.getProperties()
 //		props.put("mail.smtp.starttls.enable",true)
 		/* mail.smtp.ssl.trust is needed in script to avoid error "Could not convert socket to TLS"  */
-		props.setProperty("mail.smtp.ssl.trust", HOST)
+		props.setProperty("mail.smtp.ssl.trust", host)
 		props.put("mail.smtp.auth", true)
-		props.put("mail.smtp.host", HOST)
+		props.put("mail.smtp.host", host)
 		props.put("mail.smtp.user", username)
 		props.put("mail.smtp.password", password)
-		props.put("mail.smtp.port", PORT)
+		props.put("mail.smtp.port", port)
 	 
 		Session session = Session.getDefaultInstance(props, null)
 		MimeMessage message = new MimeMessage(session)

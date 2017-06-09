@@ -5,6 +5,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 @Entity
 public class SmtpAuthentication {
 	
@@ -46,6 +48,11 @@ public class SmtpAuthentication {
 	public SmtpAuthentication withPassword(String password) {
 		this.password = password;
 		return this;
+	}
+	
+	@Override
+	public String toString() {
+		return ReflectionToStringBuilder.reflectionToString(this);
 	}
 
 }

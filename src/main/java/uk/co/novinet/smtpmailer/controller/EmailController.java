@@ -30,7 +30,6 @@ public class EmailController {
 	private static final String MESSAGES_KEY = "messages";
 	private static final String NUMBER_OF_MESSAGES_KEY = "numberOfMessages";
 	
-	@SuppressWarnings("unused")
 	private static final Logger LOGGER = Logger.getLogger(EmailController.class);
 	
 	@Resource
@@ -55,6 +54,8 @@ public class EmailController {
     	LOGGER.info(String.format("Email controller invoked with username: %s, password: %s, toAddress: %s", username, password, toAddress));
     	
     	List<SmtpAuthentication> smtpAuthentications = smtpAuthenticationRepository.findByUsernameAndPassword(username, password);
+    	
+    	LOGGER.info(String.format("smtpAuthentications: %s", smtpAuthentications));
     	
     	if (smtpAuthentications.isEmpty()) {
     		httpServletResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);

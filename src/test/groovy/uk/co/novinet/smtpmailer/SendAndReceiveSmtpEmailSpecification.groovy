@@ -12,17 +12,25 @@ import groovyx.net.http.HttpResponseDecorator
 import groovyx.net.http.RESTClient
 import spock.lang.Specification
 
-@ContextConfiguration(classes = Application.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ActiveProfiles("test")
+//@ContextConfiguration(classes = Application.class)
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+//@ActiveProfiles("test")
 class SendAndReceiveSmtpEmailSpecification extends Specification {
 
-	static final String BASE_URL = "http://localhost:8080/"
+	static final String HOST = "localhost"
+//	static final String HTTP_PORT = "8080"
+//	static final String SMTP_PORT = "8025"
+	
+//	static final String HOST = "176.9.31.124"
+	static final String HTTP_PORT = "80"
+	static final String SMTP_PORT = "25"
+	
+	static final String BASE_URL = "http://${HOST}:${HTTP_PORT}/"
 	
 	EmailTestUtils emailTestUtils
 	
 	def setup() {
-		emailTestUtils = new EmailTestUtils("username", "password")
+		emailTestUtils = new EmailTestUtils("username", "password", HOST, SMTP_PORT)
 	}
 	
 	def "Can send and receive email with plain text body"() {

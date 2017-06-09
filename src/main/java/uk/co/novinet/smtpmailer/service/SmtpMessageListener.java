@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.activation.DataSource;
@@ -38,6 +39,8 @@ import uk.co.novinet.smtpmailer.repository.SmtpMessageRepository;
 
 @Service
 public class SmtpMessageListener implements MessageListener {
+	private static final int SMTP_PORT = 8025;
+
 	private static Log LOGGER = LogFactory.getLog(SmtpMessageListener.class);
 
 	@Resource
@@ -52,12 +55,12 @@ public class SmtpMessageListener implements MessageListener {
 	SMTPServer server;
 
 	public SmtpMessageListener() {
-		LOGGER.info("Starting SmtpMessageListener");
+		LOGGER.info(String.format("Starting SmtpMessageListener on port: %s", SMTP_PORT));
 		Collection<MessageListener> listeners = new ArrayList<MessageListener>(1);
 		listeners.add(this);
 
 		this.server = new SMTPServer(listeners);
-		this.server.setPort(8025);
+		this.server.setPort(SMTP_PORT);
 		
 		MessageListenerAdapter messageHandlerFactory = (MessageListenerAdapter) server.getMessageHandlerFactory();
 		messageHandlerFactory.setAuthenticationHandlerFactory(new SmtpMessageListenerAuthenticationHandlerFactory());
@@ -88,6 +91,7 @@ public class SmtpMessageListener implements MessageListener {
 
 	@Override
 	public void deliver(String fromAddress, String toAddress, InputStream data) throws TooMuchDataException, IOException {
+		LOGGER.info(String.format("New message is being delivered. fromAddress: %s, toAddress: %s", fromAddress, toAddress));
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		data = new BufferedInputStream(data);
 
@@ -101,11 +105,17 @@ public class SmtpMessageListener implements MessageListener {
 
 	@Transactional
 	private void persistInTransaction(String from, String recipient, ByteArrayOutputStream out) {
-		persistSmtpMessage(getOrCreateSmtpAuthentication(getSession().getProperty("mail.smtp.user"), getSession().getProperty("mail.smtp.password")), from, recipient, out.toByteArray());
+		Map<String, String> authenticationMap = SmtpMessageListenerAuthenticationHandlerFactory.AUTHENTICATION_CONTAINER.get();
+		persistSmtpMessage(getOrCreateSmtpAuthentication(authenticationMap.get("username"), authenticationMap.get("password")), from, recipient, out.toByteArray());
 	}
 
+	@Transactional
 	private SmtpAuthentication getOrCreateSmtpAuthentication(String username, String password) {
+		LOGGER.info(String.format("getOrCreateSmtpAuthentication called for username: %s and password: %s", username, password));
+		
 		List<SmtpAuthentication> smtpAuthentiations = smtpAuthenticationRepository.findByUsernameAndPassword(username, password);
+		
+		LOGGER.info(String.format("Found existing smtpAuthentiations: %s", smtpAuthentiations));
 		
 		if (smtpAuthentiations.size() > 1) {
 			throw new RuntimeException(format("Found more than one smtpAuthentication with username=%s and password=%s", username, password));
@@ -115,12 +125,17 @@ public class SmtpMessageListener implements MessageListener {
 			return smtpAuthentiations.get(0);
 		}
 		
-		return smtpAuthenticationRepository.save(new SmtpAuthentication()
+		SmtpAuthentication smtpAuthentication = smtpAuthenticationRepository.save(new SmtpAuthentication()
 			.withUsername(username)
 			.withPassword(password)
 		);
+		
+		LOGGER.info(String.format("Persisted new smtpAuthentiation: %s", smtpAuthentication));
+		
+		return smtpAuthentication;
 	}
 
+	@Transactional
 	private void persistSmtpMessage(SmtpAuthentication smtpAuthentication, String fromAddress, String toAddress, byte[] bytes) {
 		try {
 			MimeMessage mimeMessage = new MimeMessage(getSession(), new ByteArrayInputStream(bytes));
@@ -133,13 +148,19 @@ public class SmtpMessageListener implements MessageListener {
 				.withPlainBody(mimeMessageParser.getPlainContent()).withHtmlBody(mimeMessageParser.getHtmlContent())
 				.withSmtpAuthentication(smtpAuthentication);
 			
-			smtpMessageRepository.save(smtpMessage);
+			LOGGER.info(String.format("Going to persist smtpMessage: %s", smtpMessage));
+			
+			smtpMessage = smtpMessageRepository.save(smtpMessage);
+			
+			LOGGER.info(String.format("Persisted smtpMessage: %s", smtpMessage));
+			
 			persistAttachments(smtpMessage, mimeMessageParser.getAttachmentList());
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot build single message", e);
 		}
 	}
 
+	@Transactional
 	private void persistAttachments(SmtpMessage smtpMessage, List<DataSource> attachmentList) throws IOException {
 		int index = 0;
 		for (DataSource dataSource : attachmentList) {

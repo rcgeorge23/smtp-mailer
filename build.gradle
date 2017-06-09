@@ -22,7 +22,7 @@ apply plugin: 'docker'
 import org.ajoberstar.grgit.Grgit
 import org.apache.commons.io.FileUtils
 
-group = 'novinet'
+group = 'dockernovinet'
 
 jar {
 	baseName = 'smtp-mailer'
@@ -88,7 +88,8 @@ bootRun {
 	addResources = true
 }
 
-task createDockerFile(dependsOn: build) {
+//task createDockerFile(dependsOn: build) {
+task createDockerFile(dependsOn: assemble) { 
 	doFirst {
 		File dockerFileTemplate = new File('src/main/docker/Dockerfile.template')
 		new File("${buildDir}/Dockerfile").text = dockerFileTemplate.text.replace('$JAR_NAME', jar.archiveName)
