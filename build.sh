@@ -14,9 +14,13 @@ until [ "$(curl -sL -w '%{http_code}\n' 'http://localhost:80' -o /dev/null)" -eq
 done
 
 echo "Running tests"
-RESULT=$(./gradlew test)
+./gradlew test
 
-echo "RESULT=${RESULT}"
+if [ $? -eq 0 ] 
+	then
+	echo "Tests passed, so pushing new docker image to repository"
+	docker push dockernovinet/smtp-mailer:latest
+fi
 
 echo "Shutting down docker container"
 docker ps | grep 'dockernovinet/smtp-mailer' | cut -c1-12 | xargs docker stop
