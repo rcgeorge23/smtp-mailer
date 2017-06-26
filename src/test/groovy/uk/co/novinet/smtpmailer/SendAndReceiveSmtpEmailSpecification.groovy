@@ -12,9 +12,9 @@ import groovyx.net.http.HttpResponseDecorator
 import groovyx.net.http.RESTClient
 import spock.lang.Specification
 
-//@ContextConfiguration(classes = Application.class)
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-//@ActiveProfiles("test")
+@ContextConfiguration(classes = Application.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@ActiveProfiles("test")
 class SendAndReceiveSmtpEmailSpecification extends Specification {
 
 	static final String HOST = "localhost"

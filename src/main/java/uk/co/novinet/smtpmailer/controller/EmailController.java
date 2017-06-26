@@ -64,7 +64,7 @@ public class EmailController {
     	
     	SmtpAuthentication smtpAuthentication = smtpAuthentications.get(0);
     	
-		List<SmtpMessage> smtpMessages = smtpMessageRepository.findBySmtpAuthenticationAndToAddressOrderBySentDateDesc(smtpAuthentication, toAddress);
+		List<SmtpMessage> smtpMessages = smtpMessageRepository.findBySmtpAuthenticationAndToAddressOrderBySentDateAsc(smtpAuthentication, toAddress);
 		
 		Map<String, Object> result = new HashMap<String, Object>();
 		

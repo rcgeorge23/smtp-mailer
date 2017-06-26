@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -141,8 +142,9 @@ public class SmtpMessageListener implements MessageListener {
 			MimeMessage mimeMessage = new MimeMessage(getSession(), new ByteArrayInputStream(bytes));
 			MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
 			mimeMessageParser.parse();
+			
 			SmtpMessage smtpMessage = new SmtpMessage()
-				.withSentDate(mimeMessage.getSentDate())
+				.withSentDate(new Date())
 				.withToAddress(toAddress)
 				.withFromAddress(fromAddress).withSubject(mimeMessageParser.getSubject())
 				.withPlainBody(mimeMessageParser.getPlainContent()).withHtmlBody(mimeMessageParser.getHtmlContent())
