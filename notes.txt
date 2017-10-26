@@ -1,0 +1,1 @@
+ssh smtpmailer@fakesmtp.novinet.co.uk

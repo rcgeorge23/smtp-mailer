@@ -5,6 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotNull;
 
 @Entity
 public class Attachment {
@@ -12,10 +13,14 @@ public class Attachment {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
+	@NotNull
 	private String filename;
+	@NotNull
 	private String base64EncodedBytes;
+	@NotNull
 	private String contentType;
-	private int index;
+	@NotNull
+	private int idx;
 	
 	@ManyToOne
 	private SmtpMessage smtpMessage;
@@ -67,8 +72,8 @@ public class Attachment {
 		return this;
 	}
 	
-	public Attachment withIndex(int index) {
-		this.index = index;
+	public Attachment withIndex(int idx) {
+		this.idx = idx;
 		return this;
 	}
 	
@@ -85,12 +90,12 @@ public class Attachment {
 		this.smtpMessage = smtpMessage;
 	}
 
-	public int getIndex() {
-		return index;
+	public int getIdx() {
+		return idx;
 	}
 
-	public void setIndex(int index) {
-		this.index = index;
+	public void setIdx(int idx) {
+		this.idx = idx;
 	}
 	
 }

@@ -80,7 +80,7 @@ public class EmailController {
 		for (SmtpMessage smtpMessage : smtpMessages) {
 			SmtpMessageRestBean smtpMessageRestBean = new SmtpMessageRestBean();
 			copyProperties(smtpMessageRestBean, smtpMessage);
-			List<Attachment> attachments = attachmentRepository.findBySmtpMessageOrderByIndexAsc(smtpMessage);
+			List<Attachment> attachments = attachmentRepository.findBySmtpMessageOrderByIdxAsc(smtpMessage);
 			List<AttachmentRestBean> attachmentRestBeans = new ArrayList<AttachmentRestBean>();
 			
 			for (Attachment attachment : attachments) {

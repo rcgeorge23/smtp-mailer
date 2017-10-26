@@ -12,18 +12,18 @@ import groovyx.net.http.HttpResponseDecorator
 import groovyx.net.http.RESTClient
 import spock.lang.Specification
 
-@ContextConfiguration(classes = Application.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ActiveProfiles("test")
+//@ContextConfiguration(classes = Application.class)
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+//@ActiveProfiles("test")
 class SendAndReceiveSmtpEmailSpecification extends Specification {
 
 	static final String HOST = "localhost"
-//	static final String HTTP_PORT = "8080"
-//	static final String SMTP_PORT = "8025"
+	static final String HTTP_PORT = "8080"
+	static final String SMTP_PORT = "8025"
 	
 //	static final String HOST = "fakesmtp.novinet.co.uk"
-	static final String HTTP_PORT = "80"
-	static final String SMTP_PORT = "25"
+//	static final String HTTP_PORT = "80"
+//	static final String SMTP_PORT = "25"
 	
 	static final String BASE_URL = "http://${HOST}:${HTTP_PORT}/"
 	
@@ -40,6 +40,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		when:
 		RESTClient client = new RESTClient(BASE_URL)
 		HttpResponseDecorator response = client.get(path: "/", query: [username: "username", password: "password", toAddress: "to@email.address"])
+		println("sentDate: ${response.data.messages[0].sentDate}")
 		
 		then:
 		println(response.data)
@@ -48,6 +49,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		response.data.messages[0].toAddress == "to@email.address"
 		response.data.messages[0].plainBody == "body"
 		response.data.messages[0].subject == "subject"
+		response.data.messages[0].sentDate != null
 	}
 	
 	def "Can send 3 emails and receive them in order they were sent"() {
@@ -98,7 +100,7 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		response.data.messages[0].attachments[0].filename == "attachment1.txt"
 		response.data.messages[0].attachments[0].base64EncodedBytes == encodeBase64String("this is attachment 1".getBytes())
 		response.data.messages[0].attachments[0].contentType == "application/octet-stream"
-		response.data.messages[0].attachments[0].index == 0
+		response.data.messages[0].attachments[0].idx == 0
 	}
 	
 	def "Can send and receive an email with plain text body and 2 attachments"() {
@@ -120,10 +122,10 @@ class SendAndReceiveSmtpEmailSpecification extends Specification {
 		response.data.messages[0].attachments[0].filename == "attachment1.txt"
 		response.data.messages[0].attachments[0].base64EncodedBytes == encodeBase64String("this is attachment 1".getBytes())
 		response.data.messages[0].attachments[0].contentType == "application/octet-stream"
-		response.data.messages[0].attachments[0].index == 0
+		response.data.messages[0].attachments[0].idx == 0
 		response.data.messages[0].attachments[1].filename == "attachment2.txt"
 		response.data.messages[0].attachments[1].base64EncodedBytes == encodeBase64String("this is attachment 2".getBytes())
 		response.data.messages[0].attachments[1].contentType == "application/octet-stream"
-		response.data.messages[0].attachments[1].index == 1
+		response.data.messages[0].attachments[1].idx == 1
 	}
 }

@@ -6,7 +6,7 @@ public class AttachmentRestBean {
 	private String filename;
 	private String base64EncodedBytes;
 	private String contentType;
-	private int index;
+	private int idx;
 	
 	public Long getId() {
 		return id;
@@ -40,12 +40,12 @@ public class AttachmentRestBean {
 		return base64EncodedBytes;
 	}
 	
-	public int getIndex() {
-		return index;
+	public int getIdx() {
+		return idx;
 	}
 
-	public void setIndex(int index) {
-		this.index = index;
+	public void setIdx(int idx) {
+		this.idx = idx;
 	}
 	
 }

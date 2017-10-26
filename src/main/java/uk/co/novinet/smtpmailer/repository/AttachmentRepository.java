@@ -8,5 +8,5 @@ import uk.co.novinet.smtpmailer.model.Attachment;
 import uk.co.novinet.smtpmailer.model.SmtpMessage;
 
 public interface AttachmentRepository extends JpaRepository<Attachment, Long> {
-	List<Attachment> findBySmtpMessageOrderByIndexAsc(SmtpMessage smtpMessage);
+	List<Attachment> findBySmtpMessageOrderByIdxAsc(SmtpMessage smtpMessage);
 }
